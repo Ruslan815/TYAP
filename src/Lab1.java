@@ -6,7 +6,7 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static String grammar = "G = {010; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static String grammar = "G = {010; S, 9; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
@@ -70,11 +70,18 @@ public class Lab1 {
         startRule = grammarMembers[3];
 
         terminals = validateTerminals(terminals);
-        validateRules();
+        nonTerminals = validateNonTerminals(nonTerminals); //TODO Заменить на массив char
+        startRule = validateStartRule(startRule, nonTerminals);
+//        rules = validateRules(rules);
+
+//        System.out.println(Arrays.toString(nonTerminals));
 
         System.out.println(Arrays.toString(grammarMembers));
     }
 
+    /**
+     * Переводим в нижний регистр и удаляем повторения
+     */
     public static char[] validateTerminals(char[] terminals) {
         TreeSet<Character> terminalSet = new TreeSet<>();
         for (char someTerminal : terminals) {
@@ -88,8 +95,59 @@ public class Lab1 {
         return tempArr;
     }
 
-    public static void validateRules() {
+    /**
+     * Переводим в верхний регистр и удаляем повторения
+     */
+    public static String[] validateNonTerminals(String[] nonTerminals) throws Exception {
+        TreeSet<String> nonTerminalSet = new TreeSet<>();
+        for (String someNonTerminal : nonTerminals) {
+            if(someNonTerminal.length() != 1) {
+                System.err.println("NonTerminal must contains only one symbol");
+                throw new Exception();
+            }
 
+            if(Character.isDigit(someNonTerminal.charAt(0))) {
+                System.err.println("NonTerminal can't be a numeric symbol");
+                throw new Exception();
+            }
+
+            nonTerminalSet.add(someNonTerminal.toUpperCase());
+        }
+        //System.out.println(nonTerminalSet.size());
+        String[] tempArr = new String[nonTerminalSet.size()];
+        for (int i = 0; i < tempArr.length; i++) {
+            tempArr[i] = nonTerminalSet.pollFirst();
+        }
+        return tempArr;
+    }
+
+    /**
+     * Переводим в верхний регистр и проверяем на наличие в списке нетерминальных символов
+     */
+    public static String validateStartRule(String startRule, String[] nonTerminals) throws Exception {
+        startRule = startRule.toUpperCase();
+        if(!Arrays.asList(nonTerminals).contains(startRule)) {
+            System.err.println("Unknown nonTerminal symbol used in start rule");
+            throw new Exception();
+        }
+
+        return startRule;
+    }
+
+    public static String[] validateRules(String[] rules, char[] terminals, String[] nonTerminals) throws Exception {
+        for(String rule : rules) {
+            if(!Character.isUpperCase(rule.charAt(0))) {
+                System.err.println("NonTerminal must be in upper case");
+                throw new Exception();
+            }
+            for (int i = 3; i < rule.length(); i++) {
+                if(!Character.isUpperCase(rule.charAt(i))) {
+
+                }
+            }
+        }
+
+        return rules;
     }
 
     public static void generateLanguageSequences() {}
