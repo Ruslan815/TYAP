@@ -6,12 +6,15 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static final int LIMIT_OF_STEPS = 100;
+    //private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
     private static Map<Character, String[]> mapOfRules = new HashMap<>();
     private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
+    private static int stepCounter = 0;
     // <nonTerminal, массив с количествами символов которые будут добавлены для заврешения цепочки>
 
     public static void inputData() throws IOException {
@@ -257,18 +260,85 @@ public class Lab1 {
         }
     }
 
-    public static void generateLanguageChains(Grammar currentGrammar) {
+    public static void generateLanguageChains(char currentNonTerminal, String currentChain, int currentLength) {
+        //System.out.println(stepCounter);
+        stepCounter++;
+        if (startLength == 0 && currentLength == 0) {
+            for (String someRule : mapOfRules.get(currentNonTerminal)) {
+                if (someRule.equals("!")) {
+                    System.out.println("!");
+                    stepCounter--;
+                    return;
+                }
+            }
+        }
 
+        if (currentLength >= startLength && currentLength <= endLength) {
+            boolean isNonTerminalExistInChain = false;
+            for (int i = 0; i < currentChain.length(); i++) {
+                if (Character.isUpperCase(currentChain.charAt(i))) { // If nonTerminal found in current chain
+                    isNonTerminalExistInChain = true;
+                }
+            }
+            if (!isNonTerminalExistInChain) {
+                System.out.println(currentChain);
+                stepCounter--;
+                return;
+            }
+        }
+
+        // S->00S|11S|01A|10A|!
+        // A->00A|11A|01S|10S|1|0S0
+        // S, "S", 0
+        // S, 00S, 2
+        // S, 0000S, 4
+        for (String currentRule : mapOfRules.get(currentNonTerminal)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
+            currentChain = currentChain.replace(String.valueOf(currentNonTerminal), currentRule);
+            currentLength = countOfTerminals(currentChain);
+
+            //ArrayList<Character> nonTerminalsInCurrentChain = new ArrayList<>();
+            boolean isNonTerminalFound = false;
+            for (int i = 0; i < currentRule.length(); i++) {
+                if (Character.isUpperCase(currentRule.charAt(i))) {
+                    isNonTerminalFound = true;
+                    currentNonTerminal = currentRule.charAt(i); // левосторонняя если не делать ревёрс
+                    break;
+                }
+            }
+            if (!isNonTerminalFound) { // Если найдена цепочка неподходящей длины
+                stepCounter--;
+                return;
+            }
+
+            if (stepCounter > LIMIT_OF_STEPS) {
+                stepCounter--;
+                return;
+            }
+
+            generateLanguageChains(currentNonTerminal, currentChain, currentLength);
+            stepCounter--;
+        }
+        //stepCounter--; ???
+    }
+
+    public static int countOfTerminals(String someChain) {
+        int count = 0;
+        for (int i = 0; i < someChain.length(); i++) {
+            if (Character.isLowerCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i))) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public static void main(String[] args) {
-        /*try {
+        try {
             inputData();
         } catch (IOException e) {
             System.err.println("Input data error!");
             return;
             //e.printStackTrace();
-        }*/
+        }
 
         char[] terminals = new char[0];
         char[] nonTerminals = new char[0];
@@ -284,7 +354,6 @@ public class Lab1 {
         }
         System.out.println("Grammar after parsing:\n" + currentGrammar);
 
-        //generateLanguageChains(currentGrammar);
         prepareForGeneration(currentGrammar.getNonTerminals(), currentGrammar.getRules());
         /*for(Map.Entry<Character, String[]> entry : mapOfRules.entrySet()) {
             System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
@@ -292,5 +361,7 @@ public class Lab1 {
         /*for(Map.Entry<Character, ArrayList<Integer> > entry : exitMap.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }*/
+
+        generateLanguageChains(currentGrammar.getStartNonTerminal(), String.valueOf(currentGrammar.getStartNonTerminal()), 0);
     }
 }
