@@ -7,8 +7,8 @@ public class Lab1 {
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
     private static final int LIMIT_OF_STEPS = 100;
-    //private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
-    private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
+    private static String grammar = "G = {01; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    //private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
@@ -260,10 +260,18 @@ public class Lab1 {
         }
     }
 
-    public static void generateLanguageChains(char currentNonTerminal, String currentChain, int currentLength) {
+    public static void generateLanguageChains(char currentNonTerminal, String currentChain, int currentLengthInTerminals) {
         //System.out.println(stepCounter);
         stepCounter++;
-        if (startLength == 0 && currentLength == 0) {
+
+        // Если сгенерировали цепочку длины, больше чем надо, то дальше не генерируем
+        if (currentLengthInTerminals > endLength) {
+            stepCounter--;
+            return;
+        }
+
+        // Исключительный случай с пустой цепочкой
+        if (startLength == 0 && currentLengthInTerminals == 0) {
             for (String someRule : mapOfRules.get(currentNonTerminal)) {
                 if (someRule.equals("!")) {
                     System.out.println("!");
@@ -273,7 +281,8 @@ public class Lab1 {
             }
         }
 
-        if (currentLength >= startLength && currentLength <= endLength) {
+        // Если нашли цепочку подходящей длины
+        if (currentLengthInTerminals >= startLength && currentLengthInTerminals <= endLength) {
             boolean isNonTerminalExistInChain = false;
             for (int i = 0; i < currentChain.length(); i++) {
                 if (Character.isUpperCase(currentChain.charAt(i))) { // If nonTerminal found in current chain
@@ -292,11 +301,12 @@ public class Lab1 {
         // S, "S", 0
         // S, 00S, 2
         // S, 0000S, 4
-        for (String currentRule : mapOfRules.get(currentNonTerminal)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
-            currentChain = currentChain.replace(String.valueOf(currentNonTerminal), currentRule);
-            currentLength = countOfTerminals(currentChain);
+        String previousChain = currentChain;
+        char nonTerminalForSteps = currentNonTerminal;
+        for (String currentRule : mapOfRules.get(nonTerminalForSteps)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
+            currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
+            currentLengthInTerminals = countOfTerminals(currentChain);
 
-            //ArrayList<Character> nonTerminalsInCurrentChain = new ArrayList<>();
             boolean isNonTerminalFound = false;
             for (int i = 0; i < currentRule.length(); i++) {
                 if (Character.isUpperCase(currentRule.charAt(i))) {
@@ -305,20 +315,20 @@ public class Lab1 {
                     break;
                 }
             }
-            if (!isNonTerminalFound) { // Если найдена цепочка неподходящей длины
+
+            // Если найдена законченная цепочка неподходящей длины
+            if (!isNonTerminalFound && (currentLengthInTerminals < startLength || currentLengthInTerminals > endLength)) {
+                stepCounter--;
+                return;
+            }
+            if (stepCounter > LIMIT_OF_STEPS) { // Защита от зацикливания
                 stepCounter--;
                 return;
             }
 
-            if (stepCounter > LIMIT_OF_STEPS) {
-                stepCounter--;
-                return;
-            }
-
-            generateLanguageChains(currentNonTerminal, currentChain, currentLength);
-            stepCounter--;
+            generateLanguageChains(currentNonTerminal, currentChain, currentLengthInTerminals);
         }
-        //stepCounter--; ???
+        stepCounter--;
     }
 
     public static int countOfTerminals(String someChain) {
