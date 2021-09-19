@@ -12,6 +12,7 @@ public class Lab1 {
     private static int endLength;
     private static Map<Character, String[]> mapOfRules = new HashMap<>();
     private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
+    // <nonTerminal, массив с количествами символов которые будут добавлены для заврешения цепочки>
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -231,23 +232,23 @@ public class Lab1 {
             String[] someRulesArr = mapOfRules.get(someNonTerminal);
             ArrayList<Integer> arr = new ArrayList<>();
             for (String someRule : someRulesArr) {
-                int countOfTerminals = 0;
+                int countOfTerminalsToExit = 0;
                 for (int i = 0; i < someRule.length(); i++) {
                     if (Character.isLowerCase(someRule.charAt(i)) || Character.isDigit(someRule.charAt(i))) {
-                        countOfTerminals++;
+                        countOfTerminalsToExit++;
                     } else if (Character.isUpperCase(someRule.charAt(i))) {
-                        countOfTerminals = 0;
+                        countOfTerminalsToExit = 0;
                         break;
                     } else if (someRule.charAt(i) == '!') {
-                        countOfTerminals = -1;
+                        countOfTerminalsToExit = -1;
                         break;
                     }
                 }
 
-                if (countOfTerminals == -1) {
+                if (countOfTerminalsToExit == -1) {
                     arr.add(0);
-                } else if (countOfTerminals > 0) {
-                    arr.add(countOfTerminals);
+                } else if (countOfTerminalsToExit > 0) {
+                    arr.add(countOfTerminalsToExit);
                 }
             }
             if (!arr.isEmpty()) {
@@ -288,6 +289,8 @@ public class Lab1 {
         /*for(Map.Entry<Character, String[]> entry : mapOfRules.entrySet()) {
             System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
         }*/
-
+        /*for(Map.Entry<Character, ArrayList<Integer> > entry : exitMap.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }*/
     }
 }
