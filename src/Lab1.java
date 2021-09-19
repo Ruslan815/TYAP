@@ -10,6 +10,7 @@ public class Lab1 {
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
+    private static Set<Character> nonTerminalsSet;
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -140,11 +141,23 @@ public class Lab1 {
     }
 
     public static String[] validateRules(String[] rules, char[] terminals, String[] nonTerminals) throws Exception {
+        nonTerminalsSet = new HashSet<>();
         for(String rule : rules) {
             if(!Character.isUpperCase(rule.charAt(0))) {
                 System.err.println("NonTerminal must be in upper case");
                 throw new Exception();
+            } else if(!isElementInArray(rule.charAt(0), nonTerminals)) {
+                System.err.println("Character is not nonTerminal");
+                throw new Exception();
+            } else {
+                nonTerminalsSet.add(rule.charAt(0));
             }
+
+            if(rule.length() <= 3) {
+                System.err.println("Rule length must be more than 3 characters");
+                throw new Exception();
+            }
+
             for (int i = 3; i < rule.length(); i++) {
                 if(rule.charAt(i) == '|' || rule.charAt(i) == '!') {
                     continue;
@@ -162,6 +175,16 @@ public class Lab1 {
                     throw new Exception();
                 }
             }
+
+            if (rule.charAt(rule.length() - 1) != '!' && (!isElementInArray(rule.charAt(rule.length() - 1), terminals) && !isElementInArray(rule.charAt(rule.length() - 1), nonTerminals))) {
+                System.err.println("Rule must finish by terminal or nonTerminal!");
+                throw new Exception();
+            }
+        }
+
+        if(nonTerminalsSet.size() != nonTerminals.length) {
+            System.err.println("All nonTerminal must be used in rules!");
+            throw new Exception();
         }
 
         return rules;
@@ -181,7 +204,9 @@ public class Lab1 {
         return false;
     }
 
-    public static void generateLanguageSequences() {}
+    public static void generateLanguageSequences(Grammar grammar) {
+
+    }
 
     public static void main(String[] args) {
         /*try {
@@ -196,13 +221,16 @@ public class Lab1 {
         String[] nonTerminals = new String[0];
         String[] rules = new String[0];
         String startRule = "";
+        Grammar parsedGrammar = null;
         try {
-            Grammar parsedGrammar = parseGrammar(terminals, nonTerminals, rules, startRule);
+            parsedGrammar = parseGrammar(terminals, nonTerminals, rules, startRule);
             System.out.println(parsedGrammar);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
             //e.printStackTrace();
         }
+
+        generateLanguageSequences(parsedGrammar);
 
     }
 }
