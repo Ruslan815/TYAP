@@ -50,7 +50,7 @@ public class Lab1 {
         scanner.close();
     }
 
-    public static void parseGrammar(char[] terminals, char[] nonTerminals, String[] rules, char startNonTerminal) throws Exception {
+    public static Grammar parseGrammar(char[] terminals, char[] nonTerminals, String[] rules, char startNonTerminal) throws Exception {
         grammar = grammar.replace(" ", "");
         grammar = grammar.replace("{", "");
         grammar = grammar.replace("}", "");
@@ -70,9 +70,10 @@ public class Lab1 {
         terminals = validateTerminals(terminals);
         nonTerminals = validateNonTerminals(stringNonTerminals);
         startNonTerminal = validateStartNonTerminal(stringStartNonTerminal, nonTerminals);
-        rules = validateRules(rules, terminals, nonTerminals);
+        validateRules(rules, terminals, nonTerminals);
 
-        System.out.println(Arrays.toString(grammarMembers));
+        //System.out.println(Arrays.toString(grammarMembers));
+        return new Grammar(terminals, nonTerminals, rules, startNonTerminal);
     }
 
     /**
@@ -156,7 +157,7 @@ public class Lab1 {
         return startRule.charAt(0);
     }
 
-    public static String[] validateRules(String[] rules, char[] terminals, char[] nonTerminals) throws Exception {
+    public static void validateRules(String[] rules, char[] terminals, char[] nonTerminals) throws Exception {
         for (String rule : rules) {
             if (!Character.isUpperCase(rule.charAt(0))) {
                 System.err.println("NonTerminal must be in upper case");
@@ -188,8 +189,6 @@ public class Lab1 {
                 throw new Exception();
             }
         }
-
-        return rules;
     }
 
     public static boolean isElementInArray(char element, char[] arr) {
@@ -215,12 +214,15 @@ public class Lab1 {
         char[] nonTerminals = new char[0];
         String[] rules = new String[0];
         char startNonTerminal = 'a';
+        Grammar currentGrammar;
         try {
-            parseGrammar(terminals, nonTerminals, rules, startNonTerminal);
+            currentGrammar = parseGrammar(terminals, nonTerminals, rules, startNonTerminal);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
+            return;
             //e.printStackTrace();
         }
 
+        System.out.println(currentGrammar);
     }
 }
