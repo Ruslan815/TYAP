@@ -6,7 +6,7 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static String grammar = "G = {010; S, 9; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
@@ -50,7 +50,7 @@ public class Lab1 {
         scanner.close();
     }
 
-    public static void parseGrammar(char[] terminals, String[] nonTerminals, String[] rules, String startRule) throws Exception {
+    public static void parseGrammar(char[] terminals, char[] nonTerminals, String[] rules, char startNonTerminal) throws Exception {
         grammar = grammar.replace(" ","");
         grammar = grammar.replace("{","");
         grammar = grammar.replace("}","");
@@ -59,22 +59,15 @@ public class Lab1 {
         String[] grammarMembers = grammar.split(";");
 
         terminals = grammarMembers[0].toCharArray();
-        for (int i = 0; i < terminals.length; i++) {
-            if (terminals[i] == ',') {
-                System.err.println("Invalid terminal symbol: \",\"!");
-                throw new Exception();
-            }
-        }
-        nonTerminals = grammarMembers[1].split(",");
+        String[] stringNonTerminals = grammarMembers[1].split(",");
         rules = grammarMembers[2].split(",");
-        startRule = grammarMembers[3];
+        String stringStartNonTerminal = grammarMembers[3];
+
 
         terminals = validateTerminals(terminals);
-        nonTerminals = validateNonTerminals(nonTerminals); //TODO Заменить на массив char
-        startRule = validateStartRule(startRule, nonTerminals);
-//        rules = validateRules(rules);
-
-//        System.out.println(Arrays.toString(nonTerminals));
+        nonTerminals = validateNonTerminals(stringNonTerminals);
+        startNonTerminal = validateStartNonTerminal(stringStartNonTerminal, nonTerminals);
+        rules = validateRules(rules, terminals, nonTerminals);
 
         System.out.println(Arrays.toString(grammarMembers));
     }
@@ -82,7 +75,8 @@ public class Lab1 {
     /**
      * Переводим в нижний регистр и удаляем повторения
      */
-    public static char[] validateTerminals(char[] terminals) {
+    public static char[] validateTerminals(char[] terminals) throws Exception {
+        checkForCommasInTerminalArray(terminals);
         TreeSet<Character> terminalSet = new TreeSet<>();
         for (char someTerminal : terminals) {
             terminalSet.add(Character.toLowerCase(someTerminal));
@@ -95,17 +89,26 @@ public class Lab1 {
         return tempArr;
     }
 
+    public static void checkForCommasInTerminalArray(char[] terminals) throws Exception {
+        for (int i = 0; i < terminals.length; i++) {
+            if (terminals[i] == ',') {
+                System.err.println("Invalid terminal symbol: \",\"!");
+                throw new Exception();
+            }
+        }
+    }
+
     /**
-     * Переводим в верхний регистр и удаляем повторения
+     * Переводим в верхний регистр и удаляем повторения, проверяем на наличие цифр,
+     * проверяем чтобы нетерминал состоял из одного символа, записываем в массив типа char
      */
-    public static String[] validateNonTerminals(String[] nonTerminals) throws Exception {
+    public static char[] validateNonTerminals(String[] nonTerminals) throws Exception {
         TreeSet<String> nonTerminalSet = new TreeSet<>();
         for (String someNonTerminal : nonTerminals) {
-            if(someNonTerminal.length() != 1) {
+            if (someNonTerminal.length() != 1) {
                 System.err.println("NonTerminal must contains only one symbol");
                 throw new Exception();
             }
-
             if(Character.isDigit(someNonTerminal.charAt(0))) {
                 System.err.println("NonTerminal can't be a numeric symbol");
                 throw new Exception();
@@ -118,28 +121,46 @@ public class Lab1 {
         for (int i = 0; i < tempArr.length; i++) {
             tempArr[i] = nonTerminalSet.pollFirst();
         }
-        return tempArr;
+
+        char[] newNonTerminalsArray = new char[tempArr.length];
+        for (int i = 0; i < tempArr.length; i++) {
+            newNonTerminalsArray[i] = tempArr[i].charAt(0);
+        }
+        return newNonTerminalsArray;
     }
 
     /**
      * Переводим в верхний регистр и проверяем на наличие в списке нетерминальных символов
      */
-    public static String validateStartRule(String startRule, String[] nonTerminals) throws Exception {
+    public static char validateStartNonTerminal(String startRule, char[] nonTerminals) throws Exception {
         startRule = startRule.toUpperCase();
-        if(!Arrays.asList(nonTerminals).contains(startRule)) {
-            System.err.println("Unknown nonTerminal symbol used in start rule");
+        boolean isFound = false;
+        for (int i = 0; i < nonTerminals.length; i++) {
+            if (nonTerminals[i] == startRule.charAt(0)) {
+                isFound = true;
+                break;
+            }
+        }
+        if (!isFound) {
+            System.err.println("Unknown nonTerminal symbol used as start nonTerminal");
             throw new Exception();
         }
 
-        return startRule;
+        return startRule.charAt(0);
     }
 
-    public static String[] validateRules(String[] rules, char[] terminals, String[] nonTerminals) throws Exception {
+    public static String[] validateRules(String[] rules, char[] terminals, char[] nonTerminals) throws Exception {
         for(String rule : rules) {
             if(!Character.isUpperCase(rule.charAt(0))) {
                 System.err.println("NonTerminal must be in upper case");
                 throw new Exception();
             }
+
+            if (rule.charAt(1) != '-' || rule.charAt(2) != '>') {
+                System.err.println("Rule must contain \"->\"");
+                throw new Exception();
+            }
+
             for (int i = 3; i < rule.length(); i++) {
                 if(!Character.isUpperCase(rule.charAt(i))) {
 
@@ -162,11 +183,11 @@ public class Lab1 {
         }*/
 
         char[] terminals = new char[0];
-        String[] nonTerminals = new String[0];
+        char[] nonTerminals = new char[0];
         String[] rules = new String[0];
-        String startRule = "";
+        char startNonTerminal = 'a';
         try {
-            parseGrammar(terminals, nonTerminals, rules, startRule);
+            parseGrammar(terminals, nonTerminals, rules, startNonTerminal);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
             //e.printStackTrace();
