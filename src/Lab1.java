@@ -6,7 +6,7 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static String grammar = "G = {010; S, 9; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
@@ -59,12 +59,6 @@ public class Lab1 {
         String[] grammarMembers = grammar.split(";");
 
         terminals = grammarMembers[0].toCharArray();
-        for (int i = 0; i < terminals.length; i++) {
-            if (terminals[i] == ',') {
-                System.err.println("Invalid terminal symbol: \",\"!");
-                throw new Exception();
-            }
-        }
         nonTerminals = grammarMembers[1].split(",");
         rules = grammarMembers[2].split(",");
         startRule = grammarMembers[3];
@@ -72,7 +66,7 @@ public class Lab1 {
         terminals = validateTerminals(terminals);
         nonTerminals = validateNonTerminals(nonTerminals); //TODO Заменить на массив char
         startRule = validateStartRule(startRule, nonTerminals);
-//        rules = validateRules(rules);
+        rules = validateRules(rules, terminals, nonTerminals);
 
 //        System.out.println(Arrays.toString(nonTerminals));
 
@@ -82,9 +76,13 @@ public class Lab1 {
     /**
      * Переводим в нижний регистр и удаляем повторения
      */
-    public static char[] validateTerminals(char[] terminals) {
+    public static char[] validateTerminals(char[] terminals) throws Exception {
         TreeSet<Character> terminalSet = new TreeSet<>();
         for (char someTerminal : terminals) {
+            if(someTerminal == '|' || someTerminal == ',') {
+                System.err.println("Terminal character can't be \"|\", \",\"!");
+                throw new Exception();
+            }
             terminalSet.add(Character.toLowerCase(someTerminal));
         }
         //System.out.println(terminalSet.size());
@@ -101,6 +99,11 @@ public class Lab1 {
     public static String[] validateNonTerminals(String[] nonTerminals) throws Exception {
         TreeSet<String> nonTerminalSet = new TreeSet<>();
         for (String someNonTerminal : nonTerminals) {
+            if(someNonTerminal.equals("|")) {
+                System.err.println("Terminal character can't be \"|\"!");
+                throw new Exception();
+            }
+
             if(someNonTerminal.length() != 1) {
                 System.err.println("NonTerminal must contains only one symbol");
                 throw new Exception();
@@ -141,13 +144,39 @@ public class Lab1 {
                 throw new Exception();
             }
             for (int i = 3; i < rule.length(); i++) {
-                if(!Character.isUpperCase(rule.charAt(i))) {
-
+                if(rule.charAt(i) == '|' || rule.charAt(i) == '!') {
+                    continue;
+                }
+                if (Character.isDigit(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                    System.err.println("Unknown numeric terminal in rule!");
+                    throw new Exception();
+                }
+                if(Character.isLowerCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                    System.err.println("Wrong terminal character in rule!");
+                    throw new Exception();
+                }
+                if(Character.isUpperCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), nonTerminals)) {
+                    System.err.println("Wrong nonTerminal character in rule!");
+                    throw new Exception();
                 }
             }
         }
 
         return rules;
+    }
+
+    public static boolean isElementInArray(char element, String[] arr) {
+        for (String s : arr) {
+            if (element == s.charAt(0)) return true;
+        }
+        return false;
+    }
+
+    public static boolean isElementInArray(char element, char[] arr) {
+        for (char c : arr) {
+            if (c == element) return true;
+        }
+        return false;
     }
 
     public static void generateLanguageSequences() {}
