@@ -50,7 +50,7 @@ public class Lab1 {
         scanner.close();
     }
 
-    public static void parseGrammar(char[] terminals, String[] nonTerminals, String[] rules, String startRule) throws Exception {
+    public static Grammar parseGrammar(char[] terminals, String[] nonTerminals, String[] rules, String startRule) throws Exception {
         grammar = grammar.replace(" ","");
         grammar = grammar.replace("{","");
         grammar = grammar.replace("}","");
@@ -64,13 +64,15 @@ public class Lab1 {
         startRule = grammarMembers[3];
 
         terminals = validateTerminals(terminals);
-        nonTerminals = validateNonTerminals(nonTerminals); //TODO Заменить на массив char
+        nonTerminals = validateNonTerminals(nonTerminals);
         startRule = validateStartRule(startRule, nonTerminals);
         rules = validateRules(rules, terminals, nonTerminals);
 
 //        System.out.println(Arrays.toString(nonTerminals));
 
         System.out.println(Arrays.toString(grammarMembers));
+
+        return new Grammar(terminals, nonTerminals, rules, startRule);
     }
 
     /**
@@ -195,7 +197,8 @@ public class Lab1 {
         String[] rules = new String[0];
         String startRule = "";
         try {
-            parseGrammar(terminals, nonTerminals, rules, startRule);
+            Grammar parsedGrammar = parseGrammar(terminals, nonTerminals, rules, startRule);
+            System.out.println(parsedGrammar);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
             //e.printStackTrace();
