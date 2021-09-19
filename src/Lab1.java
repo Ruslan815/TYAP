@@ -293,7 +293,7 @@ public class Lab1 {
         // S, 00S, 2
         // S, 0000S, 4
         for (String currentRule : mapOfRules.get(currentNonTerminal)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
-            currentChain = currentChain.replace(String.valueOf(currentNonTerminal), currentRule);
+            currentChain = currentChain.replace(String.valueOf(currentNonTerminal), currentRule); //TODO Добавить previousChain
             currentLength = countOfTerminals(currentChain);
 
             //ArrayList<Character> nonTerminalsInCurrentChain = new ArrayList<>();
@@ -305,7 +305,7 @@ public class Lab1 {
                     break;
                 }
             }
-            if (!isNonTerminalFound) { // Если найдена цепочка неподходящей длины
+            if (!isNonTerminalFound && currentLength < startLength && currentLength > endLength) { // Если найдена цепочка неподходящей длины
                 stepCounter--;
                 return;
             }
@@ -316,9 +316,9 @@ public class Lab1 {
             }
 
             generateLanguageChains(currentNonTerminal, currentChain, currentLength);
-            stepCounter--;
+//            stepCounter--;
         }
-        //stepCounter--; ???
+        stepCounter--;
     }
 
     public static int countOfTerminals(String someChain) {
