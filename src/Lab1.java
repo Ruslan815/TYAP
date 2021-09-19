@@ -10,6 +10,8 @@ public class Lab1 {
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
+    private static Map<Character, String[]> mapOfRules = new HashMap<>();
+    private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -158,11 +160,17 @@ public class Lab1 {
     }
 
     public static void validateRules(String[] rules, char[] terminals, char[] nonTerminals) throws Exception {
+        ArrayList<Character> startRulesNonTerminal = new ArrayList<>();
         for (String rule : rules) {
             if (!Character.isUpperCase(rule.charAt(0))) {
                 System.err.println("NonTerminal must be in upper case");
                 throw new Exception();
             }
+            if (!isElementInArray(rule.charAt(0), nonTerminals)) {
+                System.err.println("Unknown NonTerminal in start of rule!");
+                throw new Exception();
+            }
+            startRulesNonTerminal.add(rule.charAt(0));
 
             if (rule.charAt(1) != '-' || rule.charAt(2) != '>') {
                 System.err.println("Rule must contain \"->\"");
@@ -184,8 +192,17 @@ public class Lab1 {
                     throw new Exception();
                 }
             }
-            if (rule.charAt(rule.length() - 1) == '|') {
-                System.err.println("Unfinished rule ended by symbol '|'!");
+            if (rule.charAt(rule.length() - 1) != '!' &&
+                    (!isElementInArray(rule.charAt(rule.length() - 1), terminals) &&
+                            !isElementInArray(rule.charAt(rule.length() - 1), nonTerminals))) {
+                System.err.println("Rule must finish by terminal or nonTerminal or symbol '!' (empty symbol)");
+                throw new Exception();
+            }
+        }
+
+        for (char someNonTerminal : nonTerminals) {
+            if (!startRulesNonTerminal.contains(someNonTerminal)) {
+                System.err.println("NonTerminal " + someNonTerminal + " have no rules!");
                 throw new Exception();
             }
         }
@@ -198,7 +215,49 @@ public class Lab1 {
         return false;
     }
 
-    public static void generateLanguageSequences() {
+    public static void prepareForGeneration(char[] nonTerminals, String[] rules) {
+        for (char someNonTerminal : nonTerminals) {
+            String[] arrOfRules = null;
+            for (String someRule : rules) {
+                if (someRule.charAt(0) == someNonTerminal) {
+                    arrOfRules = someRule.substring(3).split("\\|");
+                    break;
+                }
+            }
+            mapOfRules.put(someNonTerminal, arrOfRules);
+        }
+
+        for (char someNonTerminal : nonTerminals) {
+            String[] someRulesArr = mapOfRules.get(someNonTerminal);
+            ArrayList<Integer> arr = new ArrayList<>();
+            for (String someRule : someRulesArr) {
+                int countOfTerminals = 0;
+                for (int i = 0; i < someRule.length(); i++) {
+                    if (Character.isLowerCase(someRule.charAt(i)) || Character.isDigit(someRule.charAt(i))) {
+                        countOfTerminals++;
+                    } else if (Character.isUpperCase(someRule.charAt(i))) {
+                        countOfTerminals = 0;
+                        break;
+                    } else if (someRule.charAt(i) == '!') {
+                        countOfTerminals = -1;
+                        break;
+                    }
+                }
+
+                if (countOfTerminals == -1) {
+                    arr.add(0);
+                } else if (countOfTerminals > 0) {
+                    arr.add(countOfTerminals);
+                }
+            }
+            if (!arr.isEmpty()) {
+                exitMap.put(someNonTerminal, arr);
+            }
+        }
+    }
+
+    public static void generateLanguageChains(Grammar currentGrammar) {
+
     }
 
     public static void main(String[] args) {
@@ -222,7 +281,13 @@ public class Lab1 {
             return;
             //e.printStackTrace();
         }
+        System.out.println("Grammar after parsing:\n" + currentGrammar);
 
-        System.out.println(currentGrammar);
+        //generateLanguageChains(currentGrammar);
+        prepareForGeneration(currentGrammar.getNonTerminals(), currentGrammar.getRules());
+        /*for(Map.Entry<Character, String[]> entry : mapOfRules.entrySet()) {
+            System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
+        }*/
+
     }
 }
