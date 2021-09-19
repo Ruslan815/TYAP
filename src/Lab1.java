@@ -51,18 +51,21 @@ public class Lab1 {
     }
 
     public static void parseGrammar(char[] terminals, char[] nonTerminals, String[] rules, char startNonTerminal) throws Exception {
-        grammar = grammar.replace(" ","");
-        grammar = grammar.replace("{","");
-        grammar = grammar.replace("}","");
+        grammar = grammar.replace(" ", "");
+        grammar = grammar.replace("{", "");
+        grammar = grammar.replace("}", "");
         grammar = grammar.substring(2);
 
         String[] grammarMembers = grammar.split(";");
+        if (grammarMembers.length != 4) {
+            System.err.println("Wrong grammar format!\nMust be like: \"{VT; VN; P; S}\"");
+            throw new Exception();
+        }
 
         terminals = grammarMembers[0].toCharArray();
         String[] stringNonTerminals = grammarMembers[1].split(",");
         rules = grammarMembers[2].split(",");
         String stringStartNonTerminal = grammarMembers[3];
-
 
         terminals = validateTerminals(terminals);
         nonTerminals = validateNonTerminals(stringNonTerminals);
@@ -76,7 +79,7 @@ public class Lab1 {
      * Переводим в нижний регистр и удаляем повторения
      */
     public static char[] validateTerminals(char[] terminals) throws Exception {
-        checkForCommasInTerminalArray(terminals);
+        checkForInvalidSymbolsInTerminalArray(terminals);
         TreeSet<Character> terminalSet = new TreeSet<>();
         for (char someTerminal : terminals) {
             terminalSet.add(Character.toLowerCase(someTerminal));
@@ -89,10 +92,10 @@ public class Lab1 {
         return tempArr;
     }
 
-    public static void checkForCommasInTerminalArray(char[] terminals) throws Exception {
+    public static void checkForInvalidSymbolsInTerminalArray(char[] terminals) throws Exception {
         for (int i = 0; i < terminals.length; i++) {
-            if (terminals[i] == ',') {
-                System.err.println("Invalid terminal symbol: \",\"!");
+            if (terminals[i] == ',' || terminals[i] == '|') {
+                System.err.println("Invalid terminal symbol: \",\" or \"|\"!");
                 throw new Exception();
             }
         }
@@ -109,8 +112,12 @@ public class Lab1 {
                 System.err.println("NonTerminal must contains only one symbol");
                 throw new Exception();
             }
-            if(Character.isDigit(someNonTerminal.charAt(0))) {
+            if (Character.isDigit(someNonTerminal.charAt(0))) {
                 System.err.println("NonTerminal can't be a numeric symbol");
+                throw new Exception();
+            }
+            if (someNonTerminal.charAt(0) == '|') {
+                System.err.println("NonTerminal can't be a \"|\" symbol");
                 throw new Exception();
             }
 
@@ -150,8 +157,8 @@ public class Lab1 {
     }
 
     public static String[] validateRules(String[] rules, char[] terminals, char[] nonTerminals) throws Exception {
-        for(String rule : rules) {
-            if(!Character.isUpperCase(rule.charAt(0))) {
+        for (String rule : rules) {
+            if (!Character.isUpperCase(rule.charAt(0))) {
                 System.err.println("NonTerminal must be in upper case");
                 throw new Exception();
             }
@@ -162,16 +169,38 @@ public class Lab1 {
             }
 
             for (int i = 3; i < rule.length(); i++) {
-                if(!Character.isUpperCase(rule.charAt(i))) {
-
+                if (Character.isDigit(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                    System.err.println("Unknown numeric Terminal in rule!");
+                    throw new Exception();
                 }
+                if (Character.isUpperCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), nonTerminals)) {
+                    System.err.println("Unknown NonTerminal in rule!");
+                    throw new Exception();
+                }
+                if (rule.charAt(i) != '!' && rule.charAt(i) != '|' &&
+                        Character.isLowerCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                    System.err.println("Unknown Terminal in rule!");
+                    throw new Exception();
+                }
+            }
+            if (rule.charAt(rule.length() - 1) == '|') {
+                System.err.println("Unfinished rule ended by symbol '|'!");
+                throw new Exception();
             }
         }
 
         return rules;
     }
 
-    public static void generateLanguageSequences() {}
+    public static boolean isElementInArray(char element, char[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] == element) return true;
+        }
+        return false;
+    }
+
+    public static void generateLanguageSequences() {
+    }
 
     public static void main(String[] args) {
         /*try {
