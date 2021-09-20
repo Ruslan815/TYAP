@@ -15,10 +15,9 @@ public class Lab1 {
     private static int startLength;
     private static int endLength;
     private static Map<String, String[]> mapOfRules = new HashMap<>();
-//    private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
     private static int stepCounter = 0;
-    // <nonTerminal, массив с количествами символов которые будут добавлены для завершения цепочки>
     private static Set<Character> nonTerminalsSet;
+    private static List<String> listOfRuleChain = new LinkedList<>();
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -256,12 +255,13 @@ public class Lab1 {
 
     public static void generateLanguageChains(String currentNonTerminal, String currentChain, int currentLengthInTerminals) {
 //        System.out.println(stepCounter);
-        System.out.println(currentNonTerminal);
+        listOfRuleChain.add(currentChain);
         stepCounter++;
 
         // Если сгенерировали цепочку длины, больше чем надо, то дальше не генерируем
         if (currentLengthInTerminals > endLength) {
             stepCounter--;
+            listOfRuleChain.remove(listOfRuleChain.size() - 1);
             return;
         }
 
@@ -276,7 +276,9 @@ public class Lab1 {
             if (!isNonTerminalExistInChain) {
                 currentChain = currentChain.replaceAll("!", "");
                 System.out.println(currentChain);
+                System.out.println(listOfRuleChain);
                 stepCounter--;
+                listOfRuleChain.remove(listOfRuleChain.size() - 1);
                 return;
             }
         }
@@ -311,16 +313,19 @@ public class Lab1 {
             // Если найдена законченная цепочка неподходящей длины
             if (!isNonTerminalFound && (currentLengthInTerminals < startLength || currentLengthInTerminals > endLength)) {
                 stepCounter--;
+                listOfRuleChain.remove(listOfRuleChain.size() - 1);
                 return;
             }
             if (stepCounter > LIMIT_OF_STEPS) { // Защита от зацикливания
                 stepCounter--;
+                listOfRuleChain.remove(listOfRuleChain.size() - 1);
                 return;
             }
 
             generateLanguageChains(currentNonTerminal, currentChain, currentLengthInTerminals);
         }
         stepCounter--;
+        listOfRuleChain.remove(listOfRuleChain.size() - 1);
     }
 
     public static String reverseString(String str) {
