@@ -265,16 +265,26 @@ public class Lab1 {
         // S, 0000S, 4
         String previousChain = currentChain;
         char nonTerminalForSteps = currentNonTerminal;
-        for (String currentRule : mapOfRules.get(nonTerminalForSteps)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
+        for (String currentRule : mapOfRules.get(nonTerminalForSteps)) {
             currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
             currentLengthInTerminals = countOfTerminals(currentChain);
 
             boolean isNonTerminalFound = false;
-            for (int i = 0; i < currentRule.length(); i++) {
-                if (Character.isUpperCase(currentRule.charAt(i))) {
-                    isNonTerminalFound = true;
-                    currentNonTerminal = currentRule.charAt(i); // левосторонняя если не делать ревёрс
-                    break;
+            if (outputType) { // Правосторонний
+                for (int i = currentChain.length() - 1; i >= 0; i--) {
+                    if (Character.isUpperCase(currentChain.charAt(i))) {
+                        isNonTerminalFound = true;
+                        currentNonTerminal = currentChain.charAt(i);
+                        break;
+                    }
+                }
+            } else { // Левосторонний
+                for (int i = 0; i < currentChain.length(); i++) {
+                    if (Character.isUpperCase(currentChain.charAt(i))) {
+                        isNonTerminalFound = true;
+                        currentNonTerminal = currentChain.charAt(i);
+                        break;
+                    }
                 }
             }
 
