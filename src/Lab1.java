@@ -77,7 +77,7 @@ public class Lab1 {
         terminals = validateTerminals(terminals);
         nonTerminals = validateNonTerminals(nonTerminals);
         startRule = validateStartRule(startRule, nonTerminals);
-        rules = validateRules(rules, terminals, nonTerminals);
+        validateRules(rules, terminals, nonTerminals);
 
 //        System.out.println(Arrays.toString(nonTerminals));
 
@@ -150,7 +150,7 @@ public class Lab1 {
         return startRule;
     }
 
-    public static String[] validateRules(String[] rules, char[] terminals, String[] nonTerminals) throws Exception {
+    public static void validateRules(String[] rules, char[] terminals, String[] nonTerminals) throws Exception {
         nonTerminalsSet = new HashSet<>();
         for(String rule : rules) {
             if(!Character.isUpperCase(rule.charAt(0))) {
@@ -196,8 +196,6 @@ public class Lab1 {
             System.err.println("All nonTerminal must be used in rules!");
             throw new Exception();
         }
-
-        return rules;
     }
 
     public static boolean isElementInArray(char element, String[] arr) {
@@ -214,15 +212,12 @@ public class Lab1 {
         return false;
     }
 
-    public static void generateLanguageSequences(Grammar grammar) {
-
-    }
     public static void prepareForGeneration(String[] nonTerminals, String[] rules) {
         //Заполняем мапу правил
         for (String someNonTerminal : nonTerminals) {
             String[] arrOfRules = null;
             for (String someRule : rules) {
-                if (someRule.equals(someNonTerminal)) {
+                if (someRule.charAt(0) == someNonTerminal.charAt(0)) {
                     arrOfRules = someRule.substring(3).split("\\|");
                     break;
                 }
@@ -294,6 +289,7 @@ public class Lab1 {
         // S, 0000S, 4
         String previousChain = currentChain;
         String nonTerminalForSteps = currentNonTerminal;
+//        System.out.println(nonTerminalForSteps);
         for (String currentRule : mapOfRules.get(nonTerminalForSteps)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
             currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
             currentLengthInTerminals = countOfTerminals(currentChain);
@@ -302,7 +298,7 @@ public class Lab1 {
             for (int i = 0; i < currentRule.length(); i++) {
                 if (Character.isUpperCase(currentRule.charAt(i))) {
                     isNonTerminalFound = true;
-                    currentNonTerminal = currentRule; // левосторонняя если не делать ревёрс
+                    currentNonTerminal = String.valueOf(currentRule.charAt(i)); // левосторонняя если не делать ревёрс
                     break;
                 }
             }
@@ -357,9 +353,9 @@ public class Lab1 {
         System.out.println("Grammar after parsing:\n" + parsedGrammar);
 
         prepareForGeneration(parsedGrammar.getNonTerminals(), parsedGrammar.getRules());
-        /*for(Map.Entry<Character, String[]> entry : mapOfRules.entrySet()) {
+        for(Map.Entry<String, String[]> entry : mapOfRules.entrySet()) {
             System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
-        }*/
+        }
         /*for(Map.Entry<Character, ArrayList<Integer> > entry : exitMap.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }*/
