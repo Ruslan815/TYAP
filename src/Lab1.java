@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class Lab1 {
@@ -13,19 +15,21 @@ public class Lab1 {
     private static int startLength;
     private static int endLength;
     private static Map<Character, String[]> mapOfRules = new HashMap<>();
-    private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
+//    private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
     private static int stepCounter = 0;
-    // <nonTerminal, массив с количествами символов которые будут добавлены для заврешения цепочки>
+    // <nonTerminal, массив с количествами символов которые будут добавлены для завершения цепочки>
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.print("Если вы хотите использовать грамматику ПО УМОЛЧАНИЮ введите цифру 0, \n" +
                 "если вы хотите ввести СВОЮ грамматику введите цифру 1: ");
         int isUserGrammar = scanner.nextInt();
         if (isUserGrammar == 1) {
             System.out.println("Введите грамматику (G = {\"\"; [ , ]; [ , ]; \"\"}): ");
-            grammar = scanner.next();
+            grammar = reader.readLine();
+//            grammar = scanner.next();
             //System.out.println(inputStr);
         } else if (isUserGrammar != 0) {
             System.err.println("Wrong type of input grammar mode!");
@@ -34,7 +38,7 @@ public class Lab1 {
 
         System.out.print("Введите тип вывода грамматики (левосторонний - L, правосторонний - R): ");
         String outputTypeStr = scanner.next();
-        //System.out.println(outputTypeStr);
+//        System.out.println(outputTypeStr);
         if (!outputTypeStr.equals("L") && !outputTypeStr.equals("R")) {
             System.err.println("Wrong type of output grammar type!");
             throw new IOException();
@@ -204,6 +208,7 @@ public class Lab1 {
             }
         }
 
+        //Ищем нетерминалы без правил
         for (char someNonTerminal : nonTerminals) {
             if (!startRulesNonTerminal.contains(someNonTerminal)) {
                 System.err.println("NonTerminal " + someNonTerminal + " have no rules!");
@@ -220,6 +225,7 @@ public class Lab1 {
     }
 
     public static void prepareForGeneration(char[] nonTerminals, String[] rules) {
+        //Заполняем мапу правил
         for (char someNonTerminal : nonTerminals) {
             String[] arrOfRules = null;
             for (String someRule : rules) {
@@ -231,7 +237,7 @@ public class Lab1 {
             mapOfRules.put(someNonTerminal, arrOfRules);
         }
 
-        for (char someNonTerminal : nonTerminals) {
+        /*for (char someNonTerminal : nonTerminals) {
             String[] someRulesArr = mapOfRules.get(someNonTerminal);
             ArrayList<Integer> arr = new ArrayList<>();
             for (String someRule : someRulesArr) {
@@ -257,7 +263,7 @@ public class Lab1 {
             if (!arr.isEmpty()) {
                 exitMap.put(someNonTerminal, arr);
             }
-        }
+        }*/
     }
 
     public static void generateLanguageChains(char currentNonTerminal, String currentChain, int currentLengthInTerminals) {
@@ -270,19 +276,8 @@ public class Lab1 {
             return;
         }
 
-        // Исключительный случай с пустой цепочкой
-        if (startLength == 0 && currentLengthInTerminals == 0) {
-            for (String someRule : mapOfRules.get(currentNonTerminal)) {
-                if (someRule.equals("!")) {
-                    System.out.println("!");
-                    stepCounter--;
-                    return;
-                }
-            }
-        }
-
         // Если нашли цепочку подходящей длины
-        if (currentLengthInTerminals >= startLength && currentLengthInTerminals <= endLength) {
+        if (currentLengthInTerminals >= startLength) {
             boolean isNonTerminalExistInChain = false;
             for (int i = 0; i < currentChain.length(); i++) {
                 if (Character.isUpperCase(currentChain.charAt(i))) { // If nonTerminal found in current chain
@@ -290,6 +285,9 @@ public class Lab1 {
                 }
             }
             if (!isNonTerminalExistInChain) {
+                if(currentChain.charAt(currentChain.length() - 1) == '!') {
+                    currentChain = currentChain.replace('!', ' ');
+                }
                 System.out.println(currentChain);
                 stepCounter--;
                 return;
