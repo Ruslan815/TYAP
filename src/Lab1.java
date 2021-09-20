@@ -263,15 +263,17 @@ public class Lab1 {
             }
         }
 
-        // S->00S|11S|01A|10A|!
-        // A->00A|11A|01S|10S|1|0S0
-        // S, "S", 0
-        // S, 00S, 2
-        // S, 0000S, 4
         String previousChain = currentChain;
         char nonTerminalForSteps = currentNonTerminal;
         for (String currentRule : mapOfRules.get(nonTerminalForSteps)) {
-            currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
+            if(outputType) { // Правосторонний
+                previousChain = reverseString(previousChain);
+                currentChain = reverseString(previousChain.replaceFirst(String.valueOf(nonTerminalForSteps), reverseString(currentRule)));
+                previousChain = reverseString(previousChain);
+            } else {
+                currentChain = previousChain.replaceFirst(String.valueOf(nonTerminalForSteps), currentRule);
+            }
+
             currentLengthInTerminals = countOfTerminals(currentChain);
 
             boolean isNonTerminalFound = false;
@@ -311,6 +313,10 @@ public class Lab1 {
         listOfChainOutput.remove(listOfChainOutput.size() - 1);
     }
 
+    public static String reverseString(String str) {
+        return new StringBuilder(str).reverse().toString();
+    }
+
     public static int countOfTerminals(String someChain) {
         int count = 0;
         for (int i = 0; i < someChain.length(); i++) {
@@ -321,6 +327,7 @@ public class Lab1 {
         return count;
     }
 
+    // G = {0123456789; S, T, F; S -> T, T -> F | TF, F -> 0 | 1 | 2; S}
     public static void main(String[] args) {
         try {
             inputData();
