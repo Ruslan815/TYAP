@@ -16,6 +16,7 @@ public class Lab1 {
     private static int endLength;
     private static Map<Character, String[]> mapOfRules = new HashMap<>();
     private static int stepCounter = 0;
+    private static LinkedList<String> listOfChainOutput = new LinkedList<>();
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -236,10 +237,12 @@ public class Lab1 {
 
     public static void generateLanguageChains(char currentNonTerminal, String currentChain, int currentLengthInTerminals) {
         stepCounter++;
+        listOfChainOutput.add(currentChain);
 
         // Если сгенерировали цепочку длины, больше чем надо, то дальше не генерируем
         if (currentLengthInTerminals > endLength) {
             stepCounter--;
+            listOfChainOutput.remove(listOfChainOutput.size() - 1);
             return;
         }
 
@@ -252,8 +255,10 @@ public class Lab1 {
                 }
             }
             if (!isNonTerminalExistInChain) {
-                System.out.println(currentChain);
+                System.out.println("Chain: " + currentChain);
+                System.out.println("Sequence of chain output: " + listOfChainOutput);
                 stepCounter--;
+                listOfChainOutput.remove(listOfChainOutput.size() - 1);
                 return;
             }
         }
@@ -291,16 +296,19 @@ public class Lab1 {
             // Если найдена законченная цепочка неподходящей длины
             if (!isNonTerminalFound && (currentLengthInTerminals < startLength || currentLengthInTerminals > endLength)) {
                 stepCounter--;
+                listOfChainOutput.remove(listOfChainOutput.size() - 1);
                 return;
             }
             if (stepCounter > LIMIT_OF_STEPS) { // Защита от зацикливания
                 stepCounter--;
+                listOfChainOutput.remove(listOfChainOutput.size() - 1);
                 return;
             }
 
             generateLanguageChains(currentNonTerminal, currentChain, currentLengthInTerminals);
         }
         stepCounter--;
+        listOfChainOutput.remove(listOfChainOutput.size() - 1);
     }
 
     public static int countOfTerminals(String someChain) {
