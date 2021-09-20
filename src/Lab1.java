@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class Lab1 {
@@ -6,21 +8,29 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static String grammar = "G = {010; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    private static final int LIMIT_OF_STEPS = 100;
+    private static String grammar = "G = {01; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
+    //private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
     private static boolean outputType; // false - L, true - R
     private static int startLength;
     private static int endLength;
+    private static Map<String, String[]> mapOfRules = new HashMap<>();
+//    private static Map<Character, ArrayList<Integer>> exitMap = new HashMap<>(); // May be empty
+    private static int stepCounter = 0;
+    // <nonTerminal, массив с количествами символов которые будут добавлены для завершения цепочки>
     private static Set<Character> nonTerminalsSet;
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.print("Если вы хотите использовать грамматику ПО УМОЛЧАНИЮ введите цифру 0, \n" +
                 "если вы хотите ввести СВОЮ грамматику введите цифру 1: ");
         int isUserGrammar = scanner.nextInt();
         if (isUserGrammar == 1) {
             System.out.println("Введите грамматику (G = {\"\"; [ , ]; [ , ]; \"\"}): ");
-            grammar = scanner.next();
+            grammar = reader.readLine();
+//            grammar = scanner.next();
             //System.out.println(inputStr);
         } else if (isUserGrammar != 0) {
             System.err.println("Wrong type of input grammar mode!");
@@ -29,7 +39,7 @@ public class Lab1 {
 
         System.out.print("Введите тип вывода грамматики (левосторонний - L, правосторонний - R): ");
         String outputTypeStr = scanner.next();
-        //System.out.println(outputTypeStr);
+//        System.out.println(outputTypeStr);
         if (!outputTypeStr.equals("L") && !outputTypeStr.equals("R")) {
             System.err.println("Wrong type of output grammar type!");
             throw new IOException();
@@ -207,30 +217,153 @@ public class Lab1 {
     public static void generateLanguageSequences(Grammar grammar) {
 
     }
+    public static void prepareForGeneration(String[] nonTerminals, String[] rules) {
+        //Заполняем мапу правил
+        for (String someNonTerminal : nonTerminals) {
+            String[] arrOfRules = null;
+            for (String someRule : rules) {
+                if (someRule.equals(someNonTerminal)) {
+                    arrOfRules = someRule.substring(3).split("\\|");
+                    break;
+                }
+            }
+            mapOfRules.put(someNonTerminal, arrOfRules);
+        }
+
+        /*for (char someNonTerminal : nonTerminals) {
+            String[] someRulesArr = mapOfRules.get(someNonTerminal);
+            ArrayList<Integer> arr = new ArrayList<>();
+            for (String someRule : someRulesArr) {
+                int countOfTerminalsToExit = 0;
+                for (int i = 0; i < someRule.length(); i++) {
+                    if (Character.isLowerCase(someRule.charAt(i)) || Character.isDigit(someRule.charAt(i))) {
+                        countOfTerminalsToExit++;
+                    } else if (Character.isUpperCase(someRule.charAt(i))) {
+                        countOfTerminalsToExit = 0;
+                        break;
+                    } else if (someRule.charAt(i) == '!') {
+                        countOfTerminalsToExit = -1;
+                        break;
+                    }
+                }
+
+                if (countOfTerminalsToExit == -1) {
+                    arr.add(0);
+                } else if (countOfTerminalsToExit > 0) {
+                    arr.add(countOfTerminalsToExit);
+                }
+            }
+            if (!arr.isEmpty()) {
+                exitMap.put(someNonTerminal, arr);
+            }
+        }*/
+    }
+
+    public static void generateLanguageChains(String currentNonTerminal, String currentChain, int currentLengthInTerminals) {
+        //System.out.println(stepCounter);
+        stepCounter++;
+
+        // Если сгенерировали цепочку длины, больше чем надо, то дальше не генерируем
+        if (currentLengthInTerminals > endLength) {
+            stepCounter--;
+            return;
+        }
+
+        // Если нашли цепочку подходящей длины
+        if (currentLengthInTerminals >= startLength) {
+            boolean isNonTerminalExistInChain = false;
+            for (int i = 0; i < currentChain.length(); i++) {
+                if (Character.isUpperCase(currentChain.charAt(i))) { // If nonTerminal found in current chain
+                    isNonTerminalExistInChain = true;
+                }
+            }
+            if (!isNonTerminalExistInChain) {
+                if(currentChain.charAt(currentChain.length() - 1) == '!') {
+                    currentChain = currentChain.replace('!', ' ');
+                }
+                System.out.println(currentChain);
+                stepCounter--;
+                return;
+            }
+        }
+
+        // S->00S|11S|01A|10A|!
+        // A->00A|11A|01S|10S|1|0S0
+        // S, "S", 0
+        // S, 00S, 2
+        // S, 0000S, 4
+        String previousChain = currentChain;
+        String nonTerminalForSteps = currentNonTerminal;
+        for (String currentRule : mapOfRules.get(nonTerminalForSteps)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
+            currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
+            currentLengthInTerminals = countOfTerminals(currentChain);
+
+            boolean isNonTerminalFound = false;
+            for (int i = 0; i < currentRule.length(); i++) {
+                if (Character.isUpperCase(currentRule.charAt(i))) {
+                    isNonTerminalFound = true;
+                    currentNonTerminal = currentRule; // левосторонняя если не делать ревёрс
+                    break;
+                }
+            }
+
+            // Если найдена законченная цепочка неподходящей длины
+            if (!isNonTerminalFound && (currentLengthInTerminals < startLength || currentLengthInTerminals > endLength)) {
+                stepCounter--;
+                return;
+            }
+            if (stepCounter > LIMIT_OF_STEPS) { // Защита от зацикливания
+                stepCounter--;
+                return;
+            }
+
+            generateLanguageChains(currentNonTerminal, currentChain, currentLengthInTerminals);
+        }
+        stepCounter--;
+    }
+
+    public static int countOfTerminals(String someChain) {
+        int count = 0;
+        for (int i = 0; i < someChain.length(); i++) {
+            if (Character.isLowerCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i))) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     public static void main(String[] args) {
-        /*try {
+        try {
             inputData();
         } catch (IOException e) {
             System.err.println("Input data error!");
             return;
             //e.printStackTrace();
-        }*/
+        }
 
         char[] terminals = new char[0];
         String[] nonTerminals = new String[0];
         String[] rules = new String[0];
-        String startRule = "";
+        String startRule = "a";
         Grammar parsedGrammar = null;
         try {
             parsedGrammar = parseGrammar(terminals, nonTerminals, rules, startRule);
             System.out.println(parsedGrammar);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
+            return;
             //e.printStackTrace();
         }
+        System.out.println("Grammar after parsing:\n" + parsedGrammar);
 
-        generateLanguageSequences(parsedGrammar);
+        prepareForGeneration(parsedGrammar.getNonTerminals(), parsedGrammar.getRules());
+        /*for(Map.Entry<Character, String[]> entry : mapOfRules.entrySet()) {
+            System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
+        }*/
+        /*for(Map.Entry<Character, ArrayList<Integer> > entry : exitMap.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }*/
 
+        generateLanguageChains(parsedGrammar.getStartRule(), String.valueOf(parsedGrammar.getStartRule()), 0);
     }
 }
