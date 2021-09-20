@@ -8,7 +8,7 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static final int LIMIT_OF_STEPS = 10;
+    private static final int LIMIT_OF_STEPS = 100;
     private static String grammar = "G = {01; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
     //private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
     private static boolean outputType; // false - L, true - R
@@ -255,6 +255,7 @@ public class Lab1 {
 
     public static void generateLanguageChains(String currentNonTerminal, String currentChain, int currentLengthInTerminals) {
 //        System.out.println(stepCounter);
+//        System.out.println(currentChain);
         listOfRuleChain.add(currentChain);
         stepCounter++;
 
@@ -292,7 +293,16 @@ public class Lab1 {
         String nonTerminalForSteps = currentNonTerminal;
 //        System.out.println(nonTerminalForSteps);
         for (String currentRule : mapOfRules.get(nonTerminalForSteps)) { // правосторонняя - reverse -> (берём левый нетерминал) replace -> reverse
-            currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
+//            currentChain = previousChain.replace(String.valueOf(nonTerminalForSteps), currentRule);
+//            currentChain = replaceCharacterInString(nonTerminalForSteps, currentRule, previousChain);
+            if(outputType) { // если правосторонняя
+                previousChain = reverseString(previousChain);
+                currentChain = reverseString(previousChain.replaceFirst(String.valueOf(nonTerminalForSteps), reverseString(currentRule)));
+                previousChain = reverseString(previousChain);
+            } else {
+                currentChain = previousChain.replaceFirst(String.valueOf(nonTerminalForSteps), currentRule);
+            }
+
             currentLengthInTerminals = countOfTerminals(currentChain);
 
             boolean isNonTerminalFound = false;
