@@ -18,6 +18,7 @@ public class Lab1 {
     private static int stepCounter = 0;
     private static Set<Character> nonTerminalsSet;
     private static List<String> listOfRuleChain = new LinkedList<>();
+//    private static final char[] notAllowedCharacters = {'!'};
 
     public static void inputData() throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -175,7 +176,7 @@ public class Lab1 {
                     System.err.println("Unknown numeric terminal in rule!");
                     throw new Exception();
                 }
-                if(Character.isLowerCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                if(!Character.isUpperCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) { //!!!!!!!!!!!!!
                     System.err.println("Wrong terminal character in rule!");
                     throw new Exception();
                 }
@@ -345,7 +346,7 @@ public class Lab1 {
     public static int countOfTerminals(String someChain) {
         int count = 0;
         for (int i = 0; i < someChain.length(); i++) {
-            if (Character.isLowerCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i))) {
+            if (someChain.charAt(i) != '!' && (!Character.isUpperCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i)))) {
                 count++;
             }
         }
