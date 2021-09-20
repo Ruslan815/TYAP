@@ -192,7 +192,7 @@ public class Lab1 {
                     throw new Exception();
                 }
                 if (rule.charAt(i) != '!' && rule.charAt(i) != '|' &&
-                        Character.isLowerCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
+                        !Character.isUpperCase(rule.charAt(i)) && !isElementInArray(rule.charAt(i), terminals)) {
                     System.err.println("Unknown Terminal in rule!");
                     throw new Exception();
                 }
@@ -320,7 +320,7 @@ public class Lab1 {
     public static int countOfTerminals(String someChain) {
         int count = 0;
         for (int i = 0; i < someChain.length(); i++) {
-            if (Character.isLowerCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i))) {
+            if (someChain.charAt(i) != '!' && (!Character.isUpperCase(someChain.charAt(i)) || Character.isDigit(someChain.charAt(i)))) {
                 count++;
             }
         }
