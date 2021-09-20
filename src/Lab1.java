@@ -61,7 +61,7 @@ public class Lab1 {
         scanner.close();
     }
 
-    public static Grammar parseGrammar(char[] terminals, String[] nonTerminals, String[] rules, String startRule) throws Exception {
+    public static Grammar parseGrammar() throws Exception {
         grammar = grammar.replace(" ","");
         grammar = grammar.replace("{","");
         grammar = grammar.replace("}","");
@@ -69,10 +69,10 @@ public class Lab1 {
 
         String[] grammarMembers = grammar.split(";");
 
-        terminals = grammarMembers[0].toCharArray();
-        nonTerminals = grammarMembers[1].split(",");
-        rules = grammarMembers[2].split(",");
-        startRule = grammarMembers[3];
+        char[] terminals = grammarMembers[0].toCharArray();
+        String[] nonTerminals = grammarMembers[1].split(",");
+        String[] rules = grammarMembers[2].split(",");
+        String startRule = grammarMembers[3];
 
         terminals = validateTerminals(terminals);
         nonTerminals = validateNonTerminals(nonTerminals);
@@ -337,13 +337,9 @@ public class Lab1 {
             //e.printStackTrace();
         }
 
-        char[] terminals = new char[0];
-        String[] nonTerminals = new String[0];
-        String[] rules = new String[0];
-        String startRule = "a";
-        Grammar parsedGrammar = null;
+        Grammar parsedGrammar;
         try {
-            parsedGrammar = parseGrammar(terminals, nonTerminals, rules, startRule);
+            parsedGrammar = parseGrammar();
             System.out.println(parsedGrammar);
         } catch (Exception e) {
             System.err.println("Grammar parsing Exception!");
@@ -353,9 +349,9 @@ public class Lab1 {
         System.out.println("Grammar after parsing:\n" + parsedGrammar);
 
         prepareForGeneration(parsedGrammar.getNonTerminals(), parsedGrammar.getRules());
-        for(Map.Entry<String, String[]> entry : mapOfRules.entrySet()) {
+        /*for(Map.Entry<String, String[]> entry : mapOfRules.entrySet()) {
             System.out.println(entry.getKey() + " : " + Arrays.toString(entry.getValue()));
-        }
+        }*/
         /*for(Map.Entry<Character, ArrayList<Integer> > entry : exitMap.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());
         }*/
