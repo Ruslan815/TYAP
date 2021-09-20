@@ -8,7 +8,7 @@ public class Lab1 {
     /**
      * G = {01; SZ, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}
      */
-    private static final int LIMIT_OF_STEPS = 100;
+    private static final int LIMIT_OF_STEPS = 10;
     private static String grammar = "G = {01; S, A; S -> 00S | 11S | 01A | 10A | !, A -> 00A | 11A | 01S | 10S; S}";
     //private static String grammar = "G = {01; S, A; S -> 1A | 0A, A -> 1 | 0 | !; S}";
     private static boolean outputType; // false - L, true - R
@@ -255,7 +255,8 @@ public class Lab1 {
     }
 
     public static void generateLanguageChains(String currentNonTerminal, String currentChain, int currentLengthInTerminals) {
-        //System.out.println(stepCounter);
+//        System.out.println(stepCounter);
+        System.out.println(currentNonTerminal);
         stepCounter++;
 
         // Если сгенерировали цепочку длины, больше чем надо, то дальше не генерируем
@@ -273,16 +274,14 @@ public class Lab1 {
                 }
             }
             if (!isNonTerminalExistInChain) {
-                if(currentChain.charAt(currentChain.length() - 1) == '!') {
-                    currentChain = currentChain.replace('!', ' ');
-                }
+                currentChain = currentChain.replaceAll("!", "");
                 System.out.println(currentChain);
                 stepCounter--;
                 return;
             }
         }
 
-        // S->00S|11S|01A|10A|!
+        // S->00SAB|11S|01A|10A|!
         // A->00A|11A|01S|10S|1|0S0
         // S, "S", 0
         // S, 00S, 2
@@ -295,12 +294,18 @@ public class Lab1 {
             currentLengthInTerminals = countOfTerminals(currentChain);
 
             boolean isNonTerminalFound = false;
-            for (int i = 0; i < currentRule.length(); i++) {
-                if (Character.isUpperCase(currentRule.charAt(i))) {
+            if(outputType) { // если правосторонняя
+                currentChain = reverseString(currentChain);
+            }
+            for (int i = 0; i < currentChain.length(); i++) {
+                if (Character.isUpperCase(currentChain.charAt(i))) {
                     isNonTerminalFound = true;
-                    currentNonTerminal = String.valueOf(currentRule.charAt(i)); // левосторонняя если не делать ревёрс
+                    currentNonTerminal = String.valueOf(currentChain.charAt(i)); // левосторонняя если не делать ревёрс
                     break;
                 }
+            }
+            if(outputType) { // если правосторонняя
+                currentChain = reverseString(currentChain);
             }
 
             // Если найдена законченная цепочка неподходящей длины
@@ -316,6 +321,10 @@ public class Lab1 {
             generateLanguageChains(currentNonTerminal, currentChain, currentLengthInTerminals);
         }
         stepCounter--;
+    }
+
+    public static String reverseString(String str) {
+        return new StringBuilder(str).reverse().toString();
     }
 
     public static int countOfTerminals(String someChain) {
